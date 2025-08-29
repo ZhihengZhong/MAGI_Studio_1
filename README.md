@@ -65,4 +65,17 @@ The project is meant to show how basic horror mechanics (light, doors, being cha
 
 ---
 
-## 📂 Suggested Folder Setup
+## Suggested Folder Setup
+Assets/
+Scripts/
+FirstPersonController.cs
+DoorController.cs
+FemaleGhost.cs
+Prefabs/
+Player.prefab
+Door.prefab
+FemaleGhost.prefab
+Scenes/
+MainScene.unity
+Audio/
+ghost-sound.wav
