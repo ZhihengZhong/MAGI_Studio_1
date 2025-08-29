@@ -1,0 +1,77 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+// 功能说明：女鬼
+
+public class FemaleGhost : MonoBehaviour
+{
+    private FirstPersonController fpc;
+    private bool seeMe; // 玩家是否在看女鬼
+    private Animator animator;
+    public GameObject femaleGhostLightGo; // 女鬼的灯
+    public AudioSource audioSource;
+    public AudioClip audioClip;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (fpc != null) // 女鬼有目标了
+        {
+            Vector3 targetPos = new Vector3(fpc.transform.position.x, transform.position.y, fpc.transform.position.z);
+            transform.LookAt(targetPos); // 盯着玩家看
+
+            if (seeMe) // 如果玩家看着女鬼的时候，检测玩家是否扭头不再看了
+            {
+                if(Vector3.Angle(transform.forward, fpc.transform.forward) < 90) // 玩家正前方和女鬼正前方夹角小于90°
+                {
+                    seeMe = false; // 设置为不看
+                }
+            }
+            else // 没有看女鬼的情况，检测玩家是否要偷看
+            {
+                if(Vector3.Angle(transform.forward, fpc.transform.forward) > 90) // 玩家扭头看了
+                {
+                    seeMe = true;
+                    transform.position += (targetPos - transform.position) / 2;
+                    audioSource.PlayOneShot(audioClip);
+                    if(Vector3.Distance(transform.position,targetPos) <= 1)
+                    {
+                        CatchPlayer();
+                    }
+                }
+            }
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (fpc == null && other.CompareTag("Player"))
+        {
+            fpc = other.GetComponent<FirstPersonController>();
+            seeMe = true;
+        }
+    }
+
+    // 抓住玩家
+    private void CatchPlayer()
+    {
+        animator.CrossFade("ReadyEat", 1);
+        transform.position = fpc.BeCaught();
+        femaleGhostLightGo.SetActive(true);
+        Invoke("Replay", 5); // 延时5秒重新加载游戏
+    }
+
+    // 重玩
+    private void Replay()
+    {
+        SceneManager.LoadScene(0);
+    }
+}
