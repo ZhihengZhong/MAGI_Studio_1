@@ -1,0 +1,44 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+// 功能说明：门脚本
+
+public class DoorController : MonoBehaviour
+{
+    public float openAngle = 90; // 开门角度 - 欧拉角y
+    public float closeAngle = 0; // 关门角度
+    public float smoothSpeed = 2; // 门开关速度
+
+    private Quaternion openRotation; // 开门的角度（四元数）
+    private Quaternion closeRotation; // 关门角度
+    public bool isOpen; // 门当前状态
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        openRotation = Quaternion.Euler(0, openAngle, 0);
+        closeRotation = Quaternion.Euler(0, closeAngle, 0);
+
+        // 添加碰撞器，设置成触发器
+        gameObject.AddComponent<SphereCollider>().isTrigger = true;
+        gameObject.tag = "Door";
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // 如果门当前为开门状态，并且没有完全打开，那就执行开门动画
+        if (isOpen && Quaternion.Angle(transform.localRotation, openRotation) > 0.01f)
+        {
+            // 当前值跟我们的目标值之间的差值
+            transform.rotation = Quaternion.Slerp(transform.localRotation, openRotation, smoothSpeed * Time.deltaTime);
+        }
+    }
+
+    // 切换门的状态
+    public void ToggleDoor()
+    {
+        isOpen = !isOpen;
+    }
+}
