@@ -1,0 +1,114 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+// 创建人：Zhiheng Zhong
+// 功能说明：第一人称控制器
+
+public class FirstPersonController : MonoBehaviour
+{
+    private CharacterController controller; // 角色控制器组件
+    public float moveSpeed = 5;
+    public float mouseSensitivity = 100;
+    private float verticalRotation; //垂直轴向旋转角度记录
+    private float horizontalRotation;
+    public GameObject flashlightGo; //手电筒灯光引用
+    private bool usingFlashLight; // 是否打开手电筒
+    private float gravity = -9.8f; // 重力
+    private DoorController dc; // 当前进入到具体哪个门的开关范围了
+    public Transform caughtTrans; // 玩家被鬼抓住时应该在的位置
+    private bool beCaught; // 玩家被抓住状态
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        controller = GetComponent<CharacterController>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (beCaught)
+        {
+            return;
+        }
+        PlayerMove();
+        PlayerRotate();
+        UseFlashLight();
+        ToggleDoor();
+    }
+
+    private void PlayerMove()
+    {
+        // 玩家输入控制
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        // 移动方向 - 水平叠加垂直方向
+        Vector3 moveDirection = transform.right * horizontal + transform.forward * vertical;
+        controller.Move(moveDirection * moveSpeed * Time.deltaTime);
+
+        // 上下楼梯浮空
+        controller.Move(Vector3.up * gravity * Time.deltaTime);
+    }
+
+    private void PlayerRotate()
+    {
+        // 获取鼠标滑动输入
+        float mouseX = Input.GetAxis("Mouse X");
+        float mouseY = Input.GetAxis("Mouse Y");
+       
+        // X轴旋转值
+        //float rotationX = transform.eulerAngles.y + mouseX * Time.deltaTime * mouseSensitivity;
+
+        // Y轴旋转值
+        // float rotationY = transform.eulerAngles.y + mouseX * Time.deltaTime * mouseSensitivity;
+        horizontalRotation += mouseX * Time.deltaTime * mouseSensitivity;
+        
+        verticalRotation -= mouseY * mouseSensitivity * Time.deltaTime;
+        
+        transform.eulerAngles = new Vector3(verticalRotation, horizontalRotation, 0);
+    }
+
+    // 使用手电筒
+    private void UseFlashLight()
+    {
+        if (Input.GetMouseButtonDown(0)) // 如果按下鼠标左键
+        {
+            // 把手电筒打开或关闭
+            usingFlashLight = !usingFlashLight;
+            flashlightGo.SetActive(usingFlashLight);
+        }
+    }
+
+    // 进入
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Door"))
+        {
+            dc = other.GetComponent<DoorController>();
+        }
+    }
+
+    // 退出
+    private void OnTriggerExist(Collider other)
+    {
+        if (other.CompareTag("Door"))
+        {
+            dc = null;
+        }
+    }
+
+    private void ToggleDoor()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && dc)
+        {
+            dc.ToggleDoor();
+        }
+    }
+
+    // 玩家被抓住
+    public Vector3 BeCaught()
+    {
+        beCaught = true;
+        return caughtTrans.position;
+    }
+}
